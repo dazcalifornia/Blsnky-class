@@ -1,26 +1,35 @@
-import React from "react";
-import { Inter } from "next/font/google";
+import type { Metadata } from "next";
+import { Kanit } from "next/font/google";
 
-import StyledComponentsRegistry from "../lib/AntdRegistry";
-
-import { ThemeProvider } from "./theme/ThemeContext";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const kanit = Kanit({
+  weight: ["400", "700", "500"],
+  subsets: ["thai", "latin"],
+});
 
-export const metadata = {
-  title: "Classroom- System",
-  description: "made with care by Burblnks",
+//import ant
+import StyledComponentsRegistry from "../lib/AntdRegistry";
+import { ConfigProvider } from "antd";
+import theme from "./theme/themeConfig";
+
+export const metadata: Metadata = {
+  title: "Blnksy-class",
+  description: "Created by franx <3",
 };
 
-const RootLayout = ({ children }: React.PropsWithChildren) => (
-  <html lang="en">
-    <body className={inter.className}>
-      <StyledComponentsRegistry>
-        <ThemeProvider>{children}</ThemeProvider>
-      </StyledComponentsRegistry>
-    </body>
-  </html>
-);
-
-export default RootLayout;
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body className={kanit.className}>
+        <StyledComponentsRegistry>
+          <ConfigProvider theme={theme}>{children}</ConfigProvider>
+        </StyledComponentsRegistry>
+      </body>
+    </html>
+  );
+}

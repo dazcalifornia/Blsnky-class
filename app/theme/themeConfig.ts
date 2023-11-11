@@ -3,12 +3,13 @@ import type { ThemeConfig } from "antd";
 
 const theme: ThemeConfig = {
   token: {
-    colorBgBase: "#ddf4f4",
-    colorLink: "#f49b9b",
-    colorPrimary: "#13c2c2",
-    colorInfo: "#1a957a",
-    colorTextBase: "#000000",
+    colorBgBase: "#f5faf9",
+    colorLink: "#ffdd00",
+    colorTextBase: "#007979",
     wireframe: false,
+    colorPrimary: "#13c2c2",
+    colorInfo: "#13c2c2",
+    fontSize: 16,
     borderRadius: 16,
   },
 };

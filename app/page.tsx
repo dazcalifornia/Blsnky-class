@@ -1,12 +1,11 @@
 import React from "react";
-
-import AppLayout from "./AppLayout";
-
-import Link from "next/link";
+import { Button } from "antd";
+import Applayout from "@/lib/components/app";
 export default function Home() {
   return (
-    <AppLayout selected="1">
-      <Link href="/feed">Feed</Link>
-    </AppLayout>
+    <Applayout>
+      <Button type="primary">Button</Button>
+      <p>Hello</p>
+    </Applayout>
   );
 }
