@@ -25,7 +25,7 @@ import {
   EditFilled,
 } from "@ant-design/icons";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { Button, Layout, Menu, MenuProps } from "antd";
 
@@ -66,8 +66,10 @@ export default function RootLayout({
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const onClick: MenuProps["onClick"] = (e) => {
     router.push(`${e.keyPath[0]}`);
+
     console.log("click ", e);
   };
 
@@ -89,7 +91,7 @@ export default function RootLayout({
                   <Menu
                     theme="dark"
                     mode="inline"
-                    defaultSelectedKeys={["1"]}
+                    defaultSelectedKeys={[`${pathname}`]}
                     items={items}
                     onClick={onClick}
                   />
