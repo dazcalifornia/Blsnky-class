@@ -6,44 +6,65 @@ import {
   UploadOutlined,
   UserOutlined,
   VideoCameraOutlined,
+  AppstoreOutlined,
+  MailOutlined,
+  SettingOutlined,
+  HomeFilled,
+  EditFilled,
 } from "@ant-design/icons";
 
-import { Button, Layout, Menu, theme } from "antd";
+import Home from "@/app/page";
+import FeedPage from "@/app/feed/page";
+
+import { Button, Layout, Menu, MenuProps } from "antd";
 
 const { Header, Sider, Content, Footer } = Layout;
 
+type MenuItem = Required<MenuProps>["items"][number];
+
+function getItem(
+  label: React.ReactNode,
+  key: React.Key,
+  icon?: React.ReactNode,
+  children?: MenuItem[],
+  type?: "group"
+): MenuItem {
+  return {
+    key,
+    icon,
+    children,
+    label,
+    type,
+  } as MenuItem;
+}
+
+const items: MenuProps["items"] = [
+  getItem("Home", "/", <HomeFilled />),
+  getItem("Feeds", "/feed", <EditFilled />),
+];
+
 const Applayout = ({ children }: any) => {
   const [collapsed, setCollapsed] = useState(false);
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
+  const [selectedMenu, setSelectedMenu] = useState();
+  const onClick: MenuProps["onClick"] = (e) => {
+    setSelectedMenu(e.keyPath);
+    console.log("click ", e);
+  };
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider trigger={null} collapsible collapsed={collapsed}>
-        <div className="logo" />
-        <Menu
-          theme="dark"
-          mode="inline"
-          defaultSelectedKeys={["1"]}
-          items={[
-            {
-              key: "1",
-              icon: <UserOutlined />,
-              label: "nav 1",
-            },
-            {
-              key: "2",
-              icon: <VideoCameraOutlined />,
-              label: "nav 2",
-            },
-            {
-              key: "3",
-              icon: <UploadOutlined />,
-              label: "nav 3",
-            },
-          ]}
-        />
+      <Sider trigger={null} collapsible collapsed={collapsed} width="256">
+        <div style={{ width: "auto" }}>
+          <div className="logo" />
+
+          <Menu
+            theme="dark"
+            mode="inline"
+            defaultSelectedKeys={["1"]}
+            items={items}
+            onClick={onClick}
+          />
+        </div>
       </Sider>
       <Layout>
         <Header style={{ padding: 0 }}>
@@ -64,7 +85,8 @@ const Applayout = ({ children }: any) => {
             padding: 24,
           }}
         >
-          {children}
+          {selectedMenu === "/" && <Home />}
+          {selectedMenu === "/feed" && <FeedPage />}
         </Content>
         <Footer style={{ textAlign: "center" }}>
           Essential-Studio ©2023 Created by ESFRANX
