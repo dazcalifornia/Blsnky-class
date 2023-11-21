@@ -1,205 +1,187 @@
 "use client";
 
-import {
-  Layout,
-  Menu,
-  Button,
-  ConfigProvider,
-  Avatar,
-  Modal,
-  Form,
-  Input,
-} from "antd";
-import {
-  HomeOutlined,
-  HeartOutlined,
-  AppstoreOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
-import { useState, useEffect } from "react";
-import { lightTheme, darkTheme } from "./theme/theme"; // Update with the correct path
+import React, { useEffect, useState } from "react";
 
-import Link from "next/link";
+//import class
+import {
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  HomeFilled,
+  EditFilled,
+  ExperimentFilled,
+  UserOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
+
+import { usePathname, useRouter } from "next/navigation";
+
+import { Button, Layout, Menu, MenuProps, Popover, message } from "antd";
+
+import AuthModal from "@/lib/components/AuthModal";
+import { logout } from "@/lib/handler/api/authHandler";
 
 const { Header, Sider, Content, Footer } = Layout;
 
-const routes = [
-  { key: "1", path: "/", label: "Home", icon: <HomeOutlined /> },
-  { key: "2", path: "/feed", label: "Feed", icon: <HeartOutlined /> },
-  {
-    key: "3",
-    path: "/classrooms",
-    label: "Classrooms",
-    icon: <AppstoreOutlined />,
-  },
+type MenuItem = Required<MenuProps>["items"][number];
+
+function getItem(
+  label: React.ReactNode,
+  key: React.Key,
+  icon?: React.ReactNode,
+  children?: MenuItem[],
+  type?: "group"
+): MenuItem {
+  return {
+    key,
+    icon,
+    children,
+    label,
+    type,
+  } as MenuItem;
+}
+
+const items: MenuProps["items"] = [getItem("Home", "/", <HomeFilled />)];
+
+const loggedInItems: MenuProps["items"] = [
+  getItem("Home", "/", <HomeFilled />),
+  getItem("Feeds", "/feed", <EditFilled />),
+  getItem("Your Classroom", "sub1", <ExperimentFilled />, [
+    getItem("Math Class", "/classrooms/123", null),
+  ]),
 ];
 
-const AppLayout = ({ children, selected }: any) => {
+const AppLayout = ({ children }: any) => {
+  const [authModalVisible, setAuthModalVisible] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [isDarkTheme, setIsDarkTheme] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [formType, setFormType] = useState("login"); // "login" or "register"
+  const [userState, setUserState] = useState(false);
 
-  const toggleSidebar = () => {
-    setCollapsed(!collapsed);
-  };
+  const router = useRouter();
+  const pathname = usePathname();
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    const currentTheme = localStorage.getItem("theme");
-    if (currentTheme === "dark") {
-      setIsDarkTheme(true);
+    if (localStorage.getItem("token")) {
+      setUserState(true);
     }
-  }, []);
+    console.log("userState:", userState);
+  }, [userState]);
 
-  const debouncedToggleTheme = () => {
-    setTimeout(() => {
-      setIsDarkTheme((prevTheme) => !prevTheme);
-      localStorage.setItem("theme", isDarkTheme ? "light" : "dark");
-    }, 300); // Adjust the debounce delay as needed
+  const onClick: MenuProps["onClick"] = (e) => {
+    router.push(`${e.keyPath[0]}`);
+    console.log("click ", e);
   };
 
-  const handleToggleTheme = () => {
-    debouncedToggleTheme();
+  const showAuthModal = () => {
+    setAuthModalVisible(true);
   };
 
-  const showLoginModal = () => {
-    setIsModalVisible(true);
-    setFormType("login");
+  const hideAuthModal = () => {
+    setAuthModalVisible(false);
   };
 
-  const showRegisterModal = () => {
-    setIsModalVisible(true);
-    setFormType("register");
-  };
+  const handleLogout = () => {
+    console.log("logout");
+    logout().then(() => {
+      setUserState(false);
+      message.success("logout successful");
 
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
-
-  const handleFormSubmit = (values) => {
-    // Handle login or register logic here
-    console.log("Received values:", values);
-    setIsModalVisible(false);
-  };
-
-  const theme = isDarkTheme ? darkTheme : lightTheme;
-
-  const styles = {
-    minHeight: "100vh",
-    ...theme,
+      router.push("/"); // Navigate to "/"
+    });
   };
 
   return (
-    <ConfigProvider theme={theme}>
-      <Layout style={styles}>
-        <Sider collapsible collapsed={collapsed} onCollapse={toggleSidebar}>
-          <div className="logo" />
-          <Menu theme="dark" mode="inline" defaultSelectedKeys={[selected]}>
-            {routes.map(({ key, path, label, icon }) => (
-              <Menu.Item key={key} icon={icon}>
-                <Link href={path}>
-                  <p>{label}</p>
-                </Link>
-              </Menu.Item>
-            ))}
-          </Menu>
+    <>
+      <Layout style={{ minHeight: "100vh" }}>
+        <Sider
+          theme="light"
+          trigger={null}
+          collapsible
+          collapsed={collapsed}
+          width="256"
+        >
+          <div style={{ width: "auto" }}>
+            <div className="logo" />
+
+            <Menu
+              theme="light"
+              mode="inline"
+              defaultSelectedKeys={[`${pathname}`]}
+              items={userState ? loggedInItems : items}
+              onClick={onClick}
+            />
+          </div>
         </Sider>
-        <Layout className="site-layout">
+        <Layout>
           <Header
-            className="site-layout-background"
             style={{
-              padding: 0,
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
+              justifyContent: "space-between",
+              padding: 0,
+              backgroundColor: "white",
             }}
           >
             <div>
-              <Button onClick={handleToggleTheme}>Toggle Theme</Button>
-            </div>
-            <div>
-              <Avatar
-                icon={<UserOutlined />}
-                style={{ cursor: "pointer" }}
-                onClick={showLoginModal}
+              <Button
+                type="text"
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                onClick={() => setCollapsed(!collapsed)}
+                style={{
+                  fontSize: "16px",
+                  width: 64,
+                  height: 64,
+                }}
               />
             </div>
+            <div>
+              {token ? (
+                <Popover
+                  content={
+                    <Button
+                      type="text"
+                      icon={<LogoutOutlined />}
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </Button>
+                  }
+                >
+                  <Button
+                    type="text"
+                    icon={<UserOutlined />}
+                    style={{ fontSize: "16px", width: 64, height: 64 }}
+                  />
+                </Popover>
+              ) : (
+                <Button
+                  type="text"
+                  icon={<UserOutlined />}
+                  onClick={showAuthModal}
+                  style={{
+                    fontSize: "16px",
+                    marginRight: "16px",
+                  }}
+                >
+                  Login / Register
+                </Button>
+              )}
+            </div>
           </Header>
-          <Content style={{ margin: "16px" }}>{children}</Content>
-          <Footer style={{ textAlign: "center" }}>Footer Content</Footer>
+          <Content
+            style={{
+              margin: "24px 16px 0",
+              padding: 24,
+            }}
+          >
+            {children}
+          </Content>
+          <Footer style={{ textAlign: "center" }}>
+            Essential-Studio ©2023 Created by ESFRANX
+          </Footer>
         </Layout>
-
-        <Modal
-          title={formType === "login" ? "Login" : "Register"}
-          visible={isModalVisible}
-          onCancel={handleCancel}
-          footer={null}
-        >
-          <Form name={formType} onFinish={handleFormSubmit}>
-            <Form.Item
-              name="username"
-              rules={[
-                { required: true, message: "Please input your username!" },
-              ]}
-            >
-              <Input placeholder="Username" />
-            </Form.Item>
-
-            <Form.Item
-              name="password"
-              rules={[
-                { required: true, message: "Please input your password!" },
-              ]}
-            >
-              <Input.Password placeholder="Password" />
-            </Form.Item>
-
-            {formType === "register" && (
-              <Form.Item
-                name="confirmPassword"
-                rules={[
-                  { required: true, message: "Please confirm your password!" },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      if (!value || getFieldValue("password") === value) {
-                        return Promise.resolve();
-                      }
-                      return Promise.reject("The two passwords do not match!");
-                    },
-                  }),
-                ]}
-              >
-                <Input.Password placeholder="Confirm Password" />
-              </Form.Item>
-            )}
-
-            <Form.Item>
-              <Button type="primary" htmlType="submit">
-                {formType === "login" ? "Login" : "Register"}
-              </Button>
-            </Form.Item>
-          </Form>
-
-          <div style={{ textAlign: "center" }}>
-            {formType === "login" ? (
-              <p>
-                Don't have an account?{" "}
-                <Button type="link" onClick={showRegisterModal}>
-                  Register now
-                </Button>
-              </p>
-            ) : (
-              <p>
-                Already have an account?{" "}
-                <Button type="link" onClick={showLoginModal}>
-                  Login here
-                </Button>
-              </p>
-            )}
-          </div>
-        </Modal>
       </Layout>
-    </ConfigProvider>
+      <AuthModal visible={authModalVisible} onClose={hideAuthModal} />
+    </>
   );
 };
 

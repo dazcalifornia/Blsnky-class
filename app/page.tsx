@@ -15,6 +15,7 @@ export default function Home() {
   const classrooms = [{ id: "1" }, { id: "2" }, { id: "3" }];
   return (
     <div>
+      <h1>This is a homepage</h1>
       <Button type="primary" onClick={goToClassroom}>
         Button
       </Button>
