@@ -111,7 +111,19 @@ const PostCreationCard: React.FC<PostCreationCardProps> = ({
             <Button icon={<UploadOutlined />}>Upload Files</Button>
           </Upload>
         </Form.Item>
-        <Space></Space>
+        <Space>
+          {postContent.files.map((file, index) => (
+            <div key={index}>
+              <Text>{file.name}</Text>
+              <Button
+                icon={<DeleteOutlined />}
+                onClick={() => handleRemoveFile(file)}
+              >
+                Remove
+              </Button>
+            </div>
+          ))}
+        </Space>
         <Button type="primary" htmlType="submit">
           Create Post
         </Button>
