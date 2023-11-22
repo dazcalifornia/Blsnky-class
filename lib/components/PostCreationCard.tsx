@@ -1,134 +1,85 @@
 // components/PostCreationCard.tsx
 import React, { useState } from "react";
-import {
-  Card,
-  Typography,
-  Space,
-  Button,
-  Form,
-  Input,
-  Upload,
-  message,
-} from "antd";
-import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
-
-const { Title, Text } = Typography;
+import { Modal, Form, Input, Upload, Button, message } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
+import feedHandler from "@/lib/handler/api/feedHandler";
 
 interface PostCreationCardProps {
   onCreatePost: (postData: FormData) => void;
+  onCancel: () => void;
 }
 
 const PostCreationCard: React.FC<PostCreationCardProps> = ({
   onCreatePost,
+  onCancel,
 }) => {
-  const [postContent, setPostContent] = useState({
-    title: "",
-    content: "",
-    files: [],
-  });
+  const [form] = Form.useForm();
+  const [fileList, setFileList] = useState<any[]>([]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setPostContent({ ...postContent, [name]: value });
+  const customRequest = async ({ file, onSuccess, onError }) => {
+    try {
+      // No need to get a pre-signed URL, directly append the file to FormData
+      const newFile = { uid: file.uid, name: file.name, originFileObj: file };
+      setFileList((prevList) => [...prevList, newFile]);
+      onSuccess();
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      onError(error);
+    }
   };
 
-  const handleFileChange = (info: any) => {
-    setPostContent({
-      ...postContent,
-      files: [...postContent.files, info.file.originFileObj],
-    });
-    // if (info.file.status === "done") {
-    //   // Update files array after successful upload
-    //   setPostContent({
-    //     ...postContent,
-    //     files: [...postContent.files, info.file.originFileObj],
-    //   });
-    // } else if (info.file.status === "error") {
-    //   message.error(`${info.file.name} file upload failed.`);
-    // }
-  };
-
-  const handleRemoveFile = (file: File) => {
-    // Remove the selected file from the files array
-    const updatedFiles = postContent.files.filter((f) => f !== file);
-    setPostContent({ ...postContent, files: updatedFiles });
-  };
-
-  const handleSubmit = () => {
-    const formData = new FormData();
-    formData.append("title", postContent.title);
-    formData.append("content", postContent.content);
-    postContent.files.forEach((file, index) => {
-      formData.append("files", file);
+  const onFinish = async (values: any) => {
+    const postData = new FormData();
+    postData.append("title", values.title);
+    postData.append("content", values.content);
+    fileList.forEach((file) => {
+      postData.append("files", file.originFileObj);
     });
 
-    console.log("uploaded:", postContent.files);
-
-    // Call the parent function to handle post creation
-    onCreatePost(formData);
-
-    // Reset form after submission
-    setPostContent({ title: "", content: "", files: [] });
+    onCreatePost(postData);
+    form.resetFields(); // Clear the form fields
+    setFileList([]); // Clear the file list
+    onCancel(); // Close the modal after creating a post
   };
 
   return (
-    <Card>
-      <Title level={4}>Create a New Post</Title>
-      <Form onFinish={handleSubmit}>
-        <Form.Item
-          label="Title"
-          name="title"
-          rules={[{ required: true, message: "Please enter the title" }]}
-        >
-          <Input
-            name="title"
-            value={postContent.title}
-            onChange={handleInputChange}
-          />
+    <Modal
+      title="Create Post"
+      visible={true}
+      onCancel={onCancel}
+      footer={[
+        <Button key="cancel" onClick={onCancel}>
+          Cancel
+        </Button>,
+        <Button key="submit" type="primary" onClick={form.submit}>
+          Create Post
+        </Button>,
+      ]}
+    >
+      <Form form={form} onFinish={onFinish}>
+        <Form.Item name="title" label="Title" rules={[{ required: true }]}>
+          <Input />
+        </Form.Item>
+        <Form.Item name="content" label="Content">
+          <Input.TextArea />
         </Form.Item>
         <Form.Item
-          label="Content"
-          name="content"
-          rules={[{ required: true, message: "Please enter the content" }]}
+          name="files"
+          label="Files"
+          valuePropName="fileList"
+          getValueFromEvent={(e) => e && e.fileList}
         >
-          <Input.TextArea
-            name="content"
-            value={postContent.content}
-            onChange={handleInputChange}
-          />
-        </Form.Item>
-        <Form.Item label="Files" name="files">
           <Upload
-            customRequest={({ file, onSuccess, onError }) => {
-              // Custom request logic goes here
-              // You can use Axios or another HTTP client
-              // Call onSuccess() on success and onError() on failure
-            }}
-            onChange={handleFileChange}
-            fileList={postContent.files}
+            customRequest={customRequest}
+            listType="picture"
             maxCount={5}
+            accept="image/*,audio/*,video/*"
           >
-            <Button icon={<UploadOutlined />}>Upload Files</Button>
+            <Button icon={<UploadOutlined />}>Upload</Button>
           </Upload>
         </Form.Item>
-        <Space>
-          {postContent.files.map((file, index) => (
-            <div key={index}>
-              <Text>{file.name}</Text>
-              <Button
-                icon={<DeleteOutlined />}
-                onClick={() => handleRemoveFile(file)}
-              >
-                Remove
-              </Button>
-            </div>
-          ))}
-        </Space>
-        <Button type="primary" htmlType="submit">
-          Create Post
-        </Button>
       </Form>
-    </Card>
+    </Modal>
   );
 };
 

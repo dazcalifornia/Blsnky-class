@@ -19,6 +19,7 @@ import { Button, Layout, Menu, MenuProps, Popover, message } from "antd";
 
 import AuthModal from "@/lib/components/AuthModal";
 import { logout } from "@/lib/handler/api/authHandler";
+import ClassHandler from "@/lib/handler/api/classHandler";
 
 const { Header, Sider, Content, Footer } = Layout;
 
@@ -42,18 +43,11 @@ function getItem(
 
 const items: MenuProps["items"] = [getItem("Home", "/", <HomeFilled />)];
 
-const loggedInItems: MenuProps["items"] = [
-  getItem("Home", "/", <HomeFilled />),
-  getItem("Feeds", "/feed", <EditFilled />),
-  getItem("Your Classroom", "sub1", <ExperimentFilled />, [
-    getItem("Math Class", "/classrooms/123", null),
-  ]),
-];
-
 const AppLayout = ({ children }: any) => {
   const [authModalVisible, setAuthModalVisible] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [userState, setUserState] = useState(false);
+  const [joinedClassrooms, setJoinedClassrooms] = useState<number[]>([]);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -62,9 +56,21 @@ const AppLayout = ({ children }: any) => {
   useEffect(() => {
     if (localStorage.getItem("token")) {
       setUserState(true);
+      // Fetch joined classrooms when authenticated
+      fetchJoinedClassrooms();
     }
-    console.log("userState:", userState);
   }, [userState]);
+
+  const fetchJoinedClassrooms = async () => {
+    try {
+      const response = await ClassHandler.getJoinedClassrooms();
+      setJoinedClassrooms(response || []); // Provide a default empty array
+      console.log("response:", response);
+      console.log("joinedClass:", joinedClassrooms);
+    } catch (error) {
+      console.error("Error fetching joined classrooms:", error);
+    }
+  };
 
   const onClick: MenuProps["onClick"] = (e) => {
     router.push(`${e.keyPath[0]}`);
@@ -83,8 +89,8 @@ const AppLayout = ({ children }: any) => {
     console.log("logout");
     logout().then(() => {
       setUserState(false);
+      setJoinedClassrooms([]); // Clear joined classrooms
       message.success("logout successful");
-
       router.push("/"); // Navigate to "/"
     });
   };
@@ -106,7 +112,7 @@ const AppLayout = ({ children }: any) => {
               theme="light"
               mode="inline"
               defaultSelectedKeys={[`${pathname}`]}
-              items={userState ? loggedInItems : items}
+              items={userState ? getLoggedInItems(joinedClassrooms) : items}
               onClick={onClick}
             />
           </div>
@@ -186,3 +192,26 @@ const AppLayout = ({ children }: any) => {
 };
 
 export default AppLayout;
+
+// Function to get menu items based on joined classrooms
+const getLoggedInItems = (joinedClassrooms: number[] = []): MenuItem[] => {
+  const classroomItems: MenuItem[] = joinedClassrooms.map((classroomId) => {
+    return getItem(
+      `Classroom ${classroomId}`,
+      `/classrooms/${classroomId}`,
+      <ExperimentFilled />
+    );
+  });
+
+  return [
+    getItem("Home", "/", <HomeFilled />),
+    getItem("Feeds", "/feed", <EditFilled />),
+    getItem(
+      "Your Classrooms",
+      "sub1",
+      <ExperimentFilled />,
+      classroomItems,
+      "group"
+    ),
+  ];
+};

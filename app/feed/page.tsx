@@ -2,7 +2,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import feedHandler from "@/lib/handler/api/feedHandler";
-import { Row, Col, Button } from "antd";
+import { Row, Col, FloatButton, Empty } from "antd";
 import FeedCard from "@/lib/components/FeedCard";
 import PostCreationCard from "@/lib/components/PostCreationCard";
 
@@ -48,15 +48,18 @@ const FeedPage = () => {
 
   return (
     <>
-      <Button
-        type="primary"
+      <FloatButton
         onClick={() => setPostModalVisible(true)}
-        style={{ marginBottom: 16 }}
-      >
-        Create Post
-      </Button>
+        tooltip={<div>createPost</div>}
+      />
 
-      {postModalVisible && <PostCreationCard onCreatePost={handleCreatePost} />}
+      {postModalVisible && (
+        <PostCreationCard
+          onCreatePost={handleCreatePost}
+          onCancel={() => setPostModalVisible(false)}
+        />
+      )}
+
       <Row gutter={[16, 16]}>
         {globalFeed.map((feedItem) => (
           <Col key={feedItem.id} span={24}>
