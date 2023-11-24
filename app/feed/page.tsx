@@ -14,9 +14,8 @@ const FeedPage = () => {
   const fetchGlobalFeed = async () => {
     try {
       const feedData = await feedHandler.getGlobalFeed();
-      console.log("Global Feed:", globalFeed);
       // Handle the global feed data
-      setGlobalFeed(feedData);
+      setGlobalFeed(feedData || []);
     } catch (error) {
       // Handle the error
       console.error("Error fetching global feed:", error);
@@ -24,13 +23,6 @@ const FeedPage = () => {
   };
 
   useEffect(() => {
-    if (postData) {
-      // Do something with postData (e.g., display a message)
-      console.log("Received postData:", postData);
-      // Reset the postData state
-      setPostData(null);
-    }
-
     // Fetch global feed
     fetchGlobalFeed();
   }, [postData]);
@@ -61,8 +53,8 @@ const FeedPage = () => {
       )}
 
       <Row gutter={[16, 16]}>
-        {globalFeed.map((feedItem) => (
-          <Col key={feedItem.id} span={24}>
+        {globalFeed.map((feedItem, index) => (
+          <Col key={index} span={24}>
             <FeedCard feedItem={feedItem} />
           </Col>
         ))}
