@@ -69,7 +69,7 @@ const AppLayout = ({ children }: any) => {
       }
       fetchUserRole();
     }
-  }, [userState]);
+  }, [userState, userRole]);
 
   const fetchOwnedClass = async () => {
     try {
