@@ -14,8 +14,13 @@ const FeedPage = () => {
   const fetchGlobalFeed = async () => {
     try {
       const feedData = await feedHandler.getGlobalFeed();
-      // Handle the global feed data
-      setGlobalFeed(feedData || []);
+      // Sort the feed items by date in descending order
+      const sortedFeed = feedData.sort(
+        (a: any, b: any) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      setGlobalFeed(sortedFeed || []);
     } catch (error) {
       // Handle the error
       console.error("Error fetching global feed:", error);

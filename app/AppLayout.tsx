@@ -190,6 +190,11 @@ const AppLayout = ({ children }: any) => {
           collapsible
           collapsed={collapsed}
           width="256"
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+          }}
         >
           <div style={{ width: "auto" }}>
             <div className="logo" />
@@ -212,6 +217,9 @@ const AppLayout = ({ children }: any) => {
               justifyContent: "space-between",
               padding: 0,
               backgroundColor: "white",
+              position: "sticky",
+              top: 0,
+              zIndex: 1,
             }}
           >
             <div>

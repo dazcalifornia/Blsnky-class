@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { Modal, Form, Input, Upload, Button, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import feedHandler from "@/lib/handler/api/feedHandler";
 
 interface PostCreationCardProps {
   onCreatePost: (postData: FormData) => void;
@@ -35,6 +34,8 @@ const PostCreationCard: React.FC<PostCreationCardProps> = ({
     fileList.forEach((file) => {
       postData.append("files", file.originFileObj);
     });
+
+    console.log("mainfed:", postData);
 
     onCreatePost(postData);
     form.resetFields(); // Clear the form fields
