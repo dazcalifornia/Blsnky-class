@@ -14,6 +14,7 @@ const feedHandler = {
     }
   },
   createPost: async (postData: FormData) => {
+    console.log("postData:", postData);
     try {
       const response = await axios.post(`${API_BASE_URL}/post`, postData, {
         headers: {

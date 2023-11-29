@@ -41,14 +41,11 @@ const AssignmentHandler = {
   submitAssignment: async (
     classroomId: string,
     assignmentId: string,
-    assignmentFile: File
+    assignmentFile: FormData
   ) => {
-    const formData = new FormData();
-    formData.append("assignmentFile", assignmentFile);
-
     const response = await axios.post(
       `${API_BASE_URL}/api/classrooms/${classroomId}/assignments/${assignmentId}/submit`,
-      formData,
+      assignmentFile,
       {
         headers: {
           "Content-Type": "multipart/form-data",

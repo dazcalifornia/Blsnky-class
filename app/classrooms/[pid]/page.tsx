@@ -36,6 +36,7 @@ import CreateAssignmentModal from "@/lib/components/CreateAssignmentModal";
 import ClassFeedCard from "@/lib/components/ClassFeedClass";
 import UserHandler from "@/lib/handler/api/userHandler";
 import AssignmentHandler from "@/lib/handler/api/assignMentHandler";
+import AssignmentSubmissionForm from "@/lib/components/AssignmentSubmissionForm";
 
 const ClassroomPage = () => {
   const params = useParams();
@@ -224,6 +225,24 @@ const ClassroomPage = () => {
     setAssignmentDrawerVisible(false);
   };
 
+  const submitAssignment = async (assignmentFiles: FormData) => {
+    try {
+      // Use your existing submitAssignment function here
+      const response = await AssignmentHandler.submitAssignment(
+        classroom.id,
+        selectedAssignment.id,
+        assignmentFiles
+      );
+
+      console.log("Assignments submitted successfully. Response:", response);
+
+      return response; // Return the response if needed
+    } catch (error) {
+      console.error("Error submitting assignments:", error);
+      throw error; // Propagate the error to handle it in the form component
+    }
+  };
+
   return (
     <div>
       <Breadcrumb
@@ -307,7 +326,103 @@ const ClassroomPage = () => {
                         <Avatar src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" />
                       }
                       title={assignment.title}
-                      description={`Scheduled Submission: ${moment(
+                      description={`Due Date: ${moment(
+                        assignment.scheduled_submission
+                      ).format("MMMM Do YYYY, h:mm:ss a")}`}
+                    />
+                  </List.Item>
+                )}
+              />
+            </TabPane>
+            {isTeacher ? (
+              <TabPane tab="Assignments Review" key="3">
+                <Divider orientation="left">Assignment </Divider>
+                {/* Assignments content as a list */}
+                <List
+                  dataSource={assignments}
+                  bordered
+                  renderItem={(assignment: any) => (
+                    <List.Item
+                      key={assignment.id}
+                      actions={[
+                        <a
+                          onClick={() => showAssignmentDrawer(assignment)}
+                          key={`a-${assignment.id}`}
+                        >
+                          View Details
+                        </a>,
+                      ]}
+                    >
+                      <List.Item.Meta
+                        avatar={
+                          <Avatar src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" />
+                        }
+                        title={assignment.title}
+                        description={`Due Date: ${moment(
+                          assignment.scheduled_submission
+                        ).format("MMMM Do YYYY, h:mm:ss a")}`}
+                      />
+                    </List.Item>
+                  )}
+                />
+              </TabPane>
+            ) : (
+              <TabPane tab="To-do List" key="3">
+                <Divider orientation="left">Assignment </Divider>
+                {/* Assignments content as a list */}
+                <List
+                  dataSource={assignments}
+                  bordered
+                  renderItem={(assignment: any) => (
+                    <List.Item
+                      key={assignment.id}
+                      actions={[
+                        <a
+                          onClick={() => showAssignmentDrawer(assignment)}
+                          key={`a-${assignment.id}`}
+                        >
+                          View Details
+                        </a>,
+                      ]}
+                    >
+                      <List.Item.Meta
+                        avatar={
+                          <Avatar src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" />
+                        }
+                        title={assignment.title}
+                        description={`Due Date: ${moment(
+                          assignment.scheduled_submission
+                        ).format("MMMM Do YYYY, h:mm:ss a")}`}
+                      />
+                    </List.Item>
+                  )}
+                />
+              </TabPane>
+            )}
+            <TabPane tab="workspace" key="4">
+              <Divider orientation="left">Assignment </Divider>
+              {/* Assignments content as a list */}
+              <List
+                dataSource={assignments}
+                bordered
+                renderItem={(assignment: any) => (
+                  <List.Item
+                    key={assignment.id}
+                    actions={[
+                      <a
+                        onClick={() => showAssignmentDrawer(assignment)}
+                        key={`a-${assignment.id}`}
+                      >
+                        View Details
+                      </a>,
+                    ]}
+                  >
+                    <List.Item.Meta
+                      avatar={
+                        <Avatar src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" />
+                      }
+                      title={assignment.title}
+                      description={`Due Date: ${moment(
                         assignment.scheduled_submission
                       ).format("MMMM Do YYYY, h:mm:ss a")}`}
                     />
@@ -317,22 +432,45 @@ const ClassroomPage = () => {
             </TabPane>
           </Tabs>
           {/* Assignment Drawer */}
-          <Drawer
-            title="Assignment Details"
-            placement="right"
-            closable={true}
-            onClose={closeAssignmentDrawer}
-            visible={assignmentDrawerVisible}
-            width={400} // Adjust the width as needed
-          >
-            {selectedAssignment && (
-              <>
-                <p>Title: {selectedAssignment.title}</p>
-                <p>Description: {selectedAssignment.description}</p>
-                {/* Add more assignment details as needed */}
-              </>
-            )}
-          </Drawer>
+          {isTeacher ? (
+            // Teacher view
+            <Drawer
+              title="Assignment Review"
+              placement="right"
+              closable={true}
+              onClose={closeAssignmentDrawer}
+              visible={assignmentDrawerVisible}
+              width={400} // Adjust the width as needed
+            >
+              {selectedAssignment && (
+                <>
+                  <p>Title: {selectedAssignment.title}</p>
+                  <p>Description: {selectedAssignment.description}</p>
+                  {/* Add more assignment review details as needed */}
+                </>
+              )}
+            </Drawer>
+          ) : (
+            // Student view
+            <Drawer
+              title="Assignment Details"
+              placement="right"
+              closable={true}
+              onClose={closeAssignmentDrawer}
+              visible={assignmentDrawerVisible}
+              width={400} // Adjust the width as needed
+            >
+              {selectedAssignment && (
+                <>
+                  <p>Title: {selectedAssignment.title}</p>
+                  <p>Description: {selectedAssignment.description}</p>
+                  {/* Add more assignment details as needed */}
+
+                  <AssignmentSubmissionForm onSubmit={submitAssignment} />
+                </>
+              )}
+            </Drawer>
+          )}
         </div>
       ) : (
         <Spin indicator={<LoadingOutlined style={{ fontSize: 79 }} spin />} />
