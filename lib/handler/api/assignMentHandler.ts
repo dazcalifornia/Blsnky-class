@@ -118,6 +118,17 @@ const AssignmentHandler = {
 
     return response.data;
   },
+  listSubmittedAssignmentEachClass: async (assignmentId: string) => {
+    const response = await axios.get(
+      `${API_BASE_URL}/api/classrooms/assignments/${assignmentId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+    return response.data;
+  },
 };
 
 export default AssignmentHandler;

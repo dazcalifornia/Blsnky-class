@@ -56,25 +56,64 @@ const ClassroomPage = () => {
   );
   const [assignmentDrawerVisible, setAssignmentDrawerVisible] = useState(false);
 
+  const [toDoListItems, setToDoListItems] = useState<any[]>([]);
+
   useEffect(() => {
     //fetch userRole
     const getRole = async () => {
       const res = await UserHandler.getUserRole();
       setUserRole(res.role);
     };
+
     const fetchAssignments = async () => {
       try {
-        // Assuming you have classroomId available in your component
         const assignmentsResponse = await AssignmentHandler.listAssignments(
           classroom.id
         );
-        setAssignments(assignmentsResponse);
+
+        // Fetch submissions for each assignment
+        const submittedAssignmentsPromises = assignmentsResponse.map(
+          async (assignment: any) => {
+            const submissions =
+              await AssignmentHandler.listSubmittedAssignmentEachClass(
+                assignment.id
+              );
+
+            const isSubmitted = submissions.submissions.length > 0;
+
+            return {
+              ...assignment,
+              isSubmitted: isSubmitted,
+            };
+          }
+        );
+
+        // Wait for all promises to resolve
+        const updatedAssignments = await Promise.all(
+          submittedAssignmentsPromises
+        );
+
+        setAssignments(updatedAssignments);
+
+        // Update the to-do list items
+        const toDoList = updatedAssignments
+          .filter((assignment) => !assignment.isSubmitted)
+          .map((assignment) => ({
+            key: assignment.id,
+            title: assignment.title,
+            description: `Due Date: ${moment(
+              assignment.scheduled_submission
+            ).format("MMMM Do YYYY, h:mm:ss a")}`,
+          }));
+
+        setToDoListItems(toDoList);
       } catch (error) {
         console.error("Error fetching assignments:", error);
       }
     };
 
     fetchAssignments();
+
     const fetchData = async () => {
       try {
         // Fetch classroom details
@@ -304,7 +343,7 @@ const ClassroomPage = () => {
               </Row>
             </TabPane>
             <TabPane tab="Assignments" key="2">
-              <Divider orientation="left">Assignment </Divider>
+              <Divider orientation="left">Assignment</Divider>
               {/* Assignments content as a list */}
               <List
                 dataSource={assignments}
@@ -325,7 +364,14 @@ const ClassroomPage = () => {
                       avatar={
                         <Avatar src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" />
                       }
-                      title={assignment.title}
+                      title={
+                        <>
+                          {assignment.title}
+                          {assignment.isSubmitted && (
+                            <Badge status="success" text="Submitted" />
+                          )}
+                        </>
+                      }
                       description={`Due Date: ${moment(
                         assignment.scheduled_submission
                       ).format("MMMM Do YYYY, h:mm:ss a")}`}
@@ -336,63 +382,20 @@ const ClassroomPage = () => {
             </TabPane>
             {isTeacher ? (
               <TabPane tab="Assignments Review" key="3">
-                <Divider orientation="left">Assignment </Divider>
+                <Divider orientation="left">Assignment Review</Divider>
                 {/* Assignments content as a list */}
-                <List
-                  dataSource={assignments}
-                  bordered
-                  renderItem={(assignment: any) => (
-                    <List.Item
-                      key={assignment.id}
-                      actions={[
-                        <a
-                          onClick={() => showAssignmentDrawer(assignment)}
-                          key={`a-${assignment.id}`}
-                        >
-                          View Details
-                        </a>,
-                      ]}
-                    >
-                      <List.Item.Meta
-                        avatar={
-                          <Avatar src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" />
-                        }
-                        title={assignment.title}
-                        description={`Due Date: ${moment(
-                          assignment.scheduled_submission
-                        ).format("MMMM Do YYYY, h:mm:ss a")}`}
-                      />
-                    </List.Item>
-                  )}
-                />
               </TabPane>
             ) : (
               <TabPane tab="To-do List" key="3">
-                <Divider orientation="left">Assignment </Divider>
-                {/* Assignments content as a list */}
+                <Divider orientation="left">To do</Divider>
+                {/* Assignments if not submmit */}
                 <List
-                  dataSource={assignments}
-                  bordered
-                  renderItem={(assignment: any) => (
-                    <List.Item
-                      key={assignment.id}
-                      actions={[
-                        <a
-                          onClick={() => showAssignmentDrawer(assignment)}
-                          key={`a-${assignment.id}`}
-                        >
-                          View Details
-                        </a>,
-                      ]}
-                    >
+                  dataSource={toDoListItems}
+                  renderItem={(item) => (
+                    <List.Item>
                       <List.Item.Meta
-                        avatar={
-                          <Avatar src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" />
-                        }
-                        title={assignment.title}
-                        description={`Due Date: ${moment(
-                          assignment.scheduled_submission
-                        ).format("MMMM Do YYYY, h:mm:ss a")}`}
+                        title={item.title}
+                        description={item.description}
                       />
                     </List.Item>
                   )}
@@ -400,35 +403,7 @@ const ClassroomPage = () => {
               </TabPane>
             )}
             <TabPane tab="workspace" key="4">
-              <Divider orientation="left">Assignment </Divider>
-              {/* Assignments content as a list */}
-              <List
-                dataSource={assignments}
-                bordered
-                renderItem={(assignment: any) => (
-                  <List.Item
-                    key={assignment.id}
-                    actions={[
-                      <a
-                        onClick={() => showAssignmentDrawer(assignment)}
-                        key={`a-${assignment.id}`}
-                      >
-                        View Details
-                      </a>,
-                    ]}
-                  >
-                    <List.Item.Meta
-                      avatar={
-                        <Avatar src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" />
-                      }
-                      title={assignment.title}
-                      description={`Due Date: ${moment(
-                        assignment.scheduled_submission
-                      ).format("MMMM Do YYYY, h:mm:ss a")}`}
-                    />
-                  </List.Item>
-                )}
-              />
+              <Divider orientation="left">Workspace</Divider>
             </TabPane>
           </Tabs>
           {/* Assignment Drawer */}
@@ -465,6 +440,16 @@ const ClassroomPage = () => {
                   <p>Title: {selectedAssignment.title}</p>
                   <p>Description: {selectedAssignment.description}</p>
                   {/* Add more assignment details as needed */}
+                  <Button
+                    onClick={() => {
+                      //check submitted assigment
+                      AssignmentHandler.listSubmittedAssignmentEachClass(
+                        selectedAssignment.id
+                      );
+                    }}
+                  >
+                    logger
+                  </Button>
 
                   <AssignmentSubmissionForm onSubmit={submitAssignment} />
                 </>
