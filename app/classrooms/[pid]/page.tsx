@@ -57,6 +57,7 @@ const ClassroomPage = () => {
   const [assignmentDrawerVisible, setAssignmentDrawerVisible] = useState(false);
 
   const [toDoListItems, setToDoListItems] = useState<any[]>([]);
+  const [submittedList, setSubmittedList] = useState<any>();
 
   useEffect(() => {
     //fetch userRole
@@ -282,6 +283,24 @@ const ClassroomPage = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchSubmitted = async () => {
+      try {
+        const res = await AssignmentHandler.fetchSubmissions(
+          classroom?.id,
+          selectedAssignment?.id
+        );
+        setSubmittedList(res);
+        console.log("fetchSubmissions:", res);
+      } catch (error) {
+        console.log("Error while fetch Submitted assignments:", error);
+        throw error;
+      }
+    };
+
+    fetchSubmitted();
+  }, [classroom?.id, selectedAssignment?.id]);
+
   return (
     <div>
       <Breadcrumb
@@ -384,6 +403,33 @@ const ClassroomPage = () => {
               <TabPane tab="Assignments Review" key="3">
                 <Divider orientation="left">Assignment Review</Divider>
                 {/* Assignments content as a list */}
+                <List
+                  dataSource={submittedList}
+                  bordered
+                  renderItem={(submittedList: any) => (
+                    <List.Item
+                      key={submittedList.id}
+                      actions={[
+                        <a
+                          onClick={() => showAssignmentDrawer(submittedList)}
+                          key={`a-${submittedList.id}`}
+                        >
+                          View Details
+                        </a>,
+                      ]}
+                    >
+                      <List.Item.Meta
+                        avatar={
+                          <Avatar src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" />
+                        }
+                        title={<>{submittedList.user_id}</>}
+                        description={`Due Date: ${moment(
+                          submittedList.scheduled_time
+                        ).format("MMMM Do YYYY, h:mm:ss a")}`}
+                      />
+                    </List.Item>
+                  )}
+                />
               </TabPane>
             ) : (
               <TabPane tab="To-do List" key="3">
@@ -418,11 +464,7 @@ const ClassroomPage = () => {
               width={400} // Adjust the width as needed
             >
               {selectedAssignment && (
-                <>
-                  <p>Title: {selectedAssignment.title}</p>
-                  <p>Description: {selectedAssignment.description}</p>
-                  {/* Add more assignment review details as needed */}
-                </>
+                <>{/* Add more assignment review details as needed */}</>
               )}
             </Drawer>
           ) : (
@@ -439,19 +481,40 @@ const ClassroomPage = () => {
                 <>
                   <p>Title: {selectedAssignment.title}</p>
                   <p>Description: {selectedAssignment.description}</p>
-                  {/* Add more assignment details as needed */}
-                  <Button
-                    onClick={() => {
-                      //check submitted assigment
-                      AssignmentHandler.listSubmittedAssignmentEachClass(
-                        selectedAssignment.id
-                      );
-                    }}
-                  >
-                    logger
-                  </Button>
 
-                  <AssignmentSubmissionForm onSubmit={submitAssignment} />
+                  {/* New section for submitted files */}
+                  {selectedAssignment.isSubmitted ? (
+                    <>
+                      <Divider orientation="left">Submitted Files</Divider>
+
+                      <List
+                        dataSource={submittedList}
+                        renderItem={(submission: any) => (
+                          <List.Item>
+                            <List.Item.Meta
+                              title={`Submission Time: ${moment(
+                                submission.submission_time
+                              ).format("MMMM Do YYYY, h:mm:ss a")}`}
+                              description={
+                                <ul>
+                                  {submission.file_paths.map(
+                                    (filePath: string, index: number) => (
+                                      <li key={index}>{filePath}</li>
+                                    )
+                                  )}
+                                </ul>
+                              }
+                            />
+                          </List.Item>
+                        )}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <p>No files submitted yet.</p>
+                      <AssignmentSubmissionForm onSubmit={submitAssignment} />
+                    </>
+                  )}
                 </>
               )}
             </Drawer>
