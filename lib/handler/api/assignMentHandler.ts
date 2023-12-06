@@ -64,7 +64,28 @@ const AssignmentHandler = {
       throw error;
     }
   },
-  fetchSubmissions: async (classroomId: any, assignmentId: any) => {
+  fetchSubmissions: async (classroomId: any) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/classrooms/${classroomId}/assignments/submissions`,
+
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching submissions:", error);
+      // Handle the error appropriately
+      throw error;
+    }
+  },
+
+  fetchSubmissionsUser: async (classroomId: any,assignmentId:any) => {
+   
     try {
       const response = await axios.get(
         `${API_BASE_URL}/api/classrooms/${classroomId}/assignments/${assignmentId}/submissions`,
@@ -82,18 +103,19 @@ const AssignmentHandler = {
       throw error;
     }
   },
+  
 
   scoreAssignment: async (
     classroomId: string,
     assignmentId: string,
-    submissionId: string,
     score: number,
     feedback: string
   ) => {
+    console.log("hook recieve:", assignmentId);
     const response = await axios.post(
-      `${API_BASE_URL}/api/classrooms/${classroomId}/assignments/${assignmentId}/score`,
+      `${API_BASE_URL}/api/classrooms/${classroomId}/assignments/score`,
       {
-        submissionId,
+        submissionId: assignmentId,
         score,
         feedback,
       },
