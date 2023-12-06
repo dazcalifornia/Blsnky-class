@@ -40,6 +40,8 @@ import ClassFeedCard from "@/lib/components/ClassFeedClass";
 import UserHandler from "@/lib/handler/api/userHandler";
 import AssignmentHandler from "@/lib/handler/api/assignMentHandler";
 import AssignmentSubmissionForm from "@/lib/components/AssignmentSubmissionForm";
+import Workspace from "@/lib/components/Workspace";
+import CreateWorkspaceButton from "@/lib/components/CreateWorkspaceButton";
 
 const ClassroomPage = () => {
   const params = useParams();
@@ -566,6 +568,7 @@ const ClassroomPage = () => {
               <TabPane tab="To-do List" key="3">
                 <Divider orientation="left">To do</Divider>
                 {/* Assignments if not submmit */}
+
                 <List
                   dataSource={toDoListItems}
                   renderItem={(item) => (
@@ -581,6 +584,7 @@ const ClassroomPage = () => {
             )}
             <TabPane tab="workspace" key="5">
               <Divider orientation="left">Workspace</Divider>
+              <Workspace classDetails={classroom} />
             </TabPane>
           </Tabs>
           {/* Assignment Drawer */}
