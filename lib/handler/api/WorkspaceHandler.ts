@@ -111,15 +111,11 @@ const WorkspaceHandler = {
     }
   },
 
-  createComment: async (postId: any, userId: any, content: any) => {
+  createComment: async (formData: FormData) => {
     try {
       const response = await axios.post(
         `${API_BASE_URL}/api/workspaces/comments`,
-        {
-          postId,
-          userId,
-          content,
-        },
+        formData,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

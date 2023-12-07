@@ -15,6 +15,8 @@ import {
   Typography,
   Space,
   Image,
+  Comment,
+  List,
 } from "antd";
 import {
   HomeOutlined,
@@ -26,9 +28,9 @@ import WorkspaceHandler from "@/lib/handler/api/WorkspaceHandler";
 import ClassHandler from "@/lib/handler/api/classHandler";
 
 const { TabPane } = Tabs;
-const { Panel } = Collapse;
 const { TextArea } = Input;
 const { Title, Text } = Typography;
+const { Panel } = Collapse;
 
 const API_BASE_URL = "http://localhost:4049";
 
@@ -38,19 +40,18 @@ const WorkspacePage = () => {
   const [workSpace, setWorkSpace] = useState<any>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [fileList, setFileList] = useState<any[]>([]);
+  const [attachmentFileList, setAttachmentFileList] = useState<any[]>([]);
 
   const [form] = Form.useForm();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch classroom details
         const classroomDetails = await ClassHandler.getClassroomDetails(
           params.class.toString()
         );
         setClassroom(classroomDetails);
 
-        // Fetch workspace details
         const workspaceDetails = await WorkspaceHandler.getWorkspaceDetails(
           params.id
         );
@@ -65,24 +66,22 @@ const WorkspacePage = () => {
     }
   }, []);
 
-  const [comments, setComments] = useState([]);
-
-  // Fetch posts and comments when component mounts
+  const [comments, setComments] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchPostsAndComments = async () => {
       try {
         const postsData = await WorkspaceHandler.getPosts(workSpace.id);
         setPosts(postsData);
-        console.log(postsData);
 
         if (postsData.length > 0) {
-          // Assuming you want to fetch comments for the first post
-          const commentsData = await WorkspaceHandler.getComments(
-            postsData[0].id
-          );
+          const commentsPromises = postsData.map(async (post: any) => {
+            const commentsData = await WorkspaceHandler.getComments(post.id);
+            return commentsData;
+          });
 
-          setComments(commentsData);
+          const allComments = await Promise.all(commentsPromises);
+          setComments(allComments.flat());
         }
       } catch (error) {
         console.error("Error fetching posts and comments:", error);
@@ -94,10 +93,8 @@ const WorkspacePage = () => {
     }
   }, [workSpace]);
 
-  // Handle file upload
   const customRequest = async ({ file, onSuccess, onError }: any) => {
     try {
-      // No need to get a pre-signed URL, directly append the file to FormData
       const newFile = { uid: file.uid, name: file.name, originFileObj: file };
       setFileList((prevList) => [...prevList, newFile]);
       onSuccess();
@@ -112,34 +109,79 @@ const WorkspacePage = () => {
   };
 
   const handleUploadRemove = (file: any) => {
-    // Handle file removal
-    console.log("Removing file:", file);
+    setFileList((prevList) => prevList.filter((item) => item.uid !== file.uid));
   };
 
   const onFinish = async (values: any) => {
     const formData = new FormData();
-
-    // Append form data
     formData.append("workspaceId", workSpace.id);
     formData.append("content", values.content);
-
-    // Append files
     fileList.forEach((file: any) => {
       formData.append("files", file.originFileObj);
-      console.log("beepp:", file);
     });
 
     try {
-      // Call the createPost function with workspace ID, form values, and files
-      const res = await WorkspaceHandler.createPost(formData).finally(() => {
-        setFileList([]);
-        form.resetFields();
-        return message.success("post has been created");
-      });
-
-      console.log("Post creation response:", res);
+      const res = await WorkspaceHandler.createPost(formData);
+      setFileList([]);
+      form.resetFields();
+      message.success("Post has been created");
+      setPosts((prevPosts) => [res, ...prevPosts]);
     } catch (error) {
       console.error("Error creating post:", error);
+    }
+  };
+
+  // Custom request for file upload
+  const customAttachmentRequest = async ({ file, onSuccess, onError }: any) => {
+    try {
+      // Append the file to the list
+      const newFile = { uid: file.uid, name: file.name, originFileObj: file };
+      setAttachmentFileList((prevList) => [...prevList, newFile]);
+      onSuccess();
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      onError(error);
+    }
+  };
+
+  // Remove file from the attachment list
+  const handleAttachmentRemove = (file: any) => {
+    setAttachmentFileList((prevList) =>
+      prevList.filter((item) => item.uid !== file.uid)
+    );
+  };
+
+  const onFinishComment = async (postId: string, values: any) => {
+    const formData = new FormData();
+
+    // Append form data
+    formData.append("postId", postId);
+    formData.append("content", values.content);
+
+    // Append files
+    attachmentFileList.forEach((file: any) => {
+      formData.append("attachmentFiles", file.originFileObj);
+    });
+
+    try {
+      // Call the createComment function with post ID, form values, and files
+      const res = await WorkspaceHandler.createComment(formData);
+
+      console.log("Comment creation response:", res);
+
+      // After successfully creating a comment, fetch the updated list of comments
+      const updatedComments = await WorkspaceHandler.getComments(postId);
+
+      // Update the comments state to rerender the comments section
+      setComments(updatedComments);
+
+      // Reset form fields and file list
+      setAttachmentFileList([]);
+      form.resetFields();
+
+      message.success("Comment has been added");
+    } catch (error) {
+      console.error("Error creating comment:", error);
       // Handle error appropriately, e.g., show an error message to the user
     }
   };
@@ -148,10 +190,7 @@ const WorkspacePage = () => {
     <div>
       <Breadcrumb
         items={[
-          {
-            href: "/",
-            title: <HomeOutlined />,
-          },
+          { href: "/", title: <HomeOutlined /> },
           {
             title: (
               <>
@@ -172,9 +211,6 @@ const WorkspacePage = () => {
         defaultActiveKey="1"
         tabPosition="left"
         onChange={async (key) => {
-          // Update the selected post when the tab is changed
-          //setSelectedPost(posts.find((post) => post.id === key));
-          console.log(key);
           if (key === "1") {
             const postData = await WorkspaceHandler.getPosts(workSpace.id);
             setPosts(postData);
@@ -203,7 +239,6 @@ const WorkspacePage = () => {
                       alt={`Image ${index + 1}`}
                     />
                   ))}
-
                   {post.files.length > 0 &&
                     post.files[0] !== "" &&
                     post.files.map((fileName: any, index: any) => (
@@ -218,6 +253,57 @@ const WorkspacePage = () => {
                         Download File {fileName}
                       </a>
                     ))}
+                  {/* Comment Section */}
+                  <Collapse accordion>
+                    <Panel header="Comments" key="1">
+                      <List
+                        dataSource={comments.filter(
+                          (comment) => comment.post_id === post.id
+                        )}
+                        renderItem={(comment) => (
+                          <List.Item>
+                            <div>
+                              <strong>User ID: {comment.user_id}</strong>
+                              <p>{comment.content}</p>
+                            </div>
+                          </List.Item>
+                        )}
+                      />
+                      {/* Comment Form */}
+                      <Form
+                        form={form}
+                        onFinish={(values) => onFinishComment(post.id, values)}
+                        style={{ marginTop: "16px" }}
+                      >
+                        <Form.Item name="content">
+                          <Input.TextArea rows={2} />
+                        </Form.Item>
+                        {/* Attachment Upload */}
+                        <Form.Item
+                          label="Attach"
+                          name="attachment"
+                          valuePropName="fileList"
+                          getValueFromEvent={(e) => e && e.fileList}
+                        >
+                          <Upload
+                            customRequest={customAttachmentRequest}
+                            fileList={attachmentFileList}
+                            onRemove={handleAttachmentRemove}
+                            listType="picture"
+                            maxCount={5}
+                            accept="image/*,audio/*,video/*,document/*"
+                          >
+                            <Button icon={<UploadOutlined />}>Attach</Button>
+                          </Upload>
+                        </Form.Item>
+                        <Form.Item>
+                          <Button type="primary" htmlType="submit">
+                            Add Comment
+                          </Button>
+                        </Form.Item>
+                      </Form>
+                    </Panel>
+                  </Collapse>
                 </Space>
               </Card>
             ))}
