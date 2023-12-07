@@ -15,7 +15,7 @@ const PostCreationCard: React.FC<PostCreationCardProps> = ({
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<any[]>([]);
 
-  const customRequest = async ({ file, onSuccess, onError }) => {
+  const customRequest = async ({ file, onSuccess, onError }: any) => {
     try {
       // No need to get a pre-signed URL, directly append the file to FormData
       const newFile = { uid: file.uid, name: file.name, originFileObj: file };
@@ -74,7 +74,7 @@ const PostCreationCard: React.FC<PostCreationCardProps> = ({
             customRequest={customRequest}
             listType="picture"
             maxCount={5}
-            accept="image/*,audio/*,video/*"
+            accept="image/*,audio/*,video/*,document/*"
           >
             <Button icon={<UploadOutlined />}>Upload</Button>
           </Upload>
