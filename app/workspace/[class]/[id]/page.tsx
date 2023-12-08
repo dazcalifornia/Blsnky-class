@@ -125,7 +125,7 @@ const WorkspacePage = () => {
       setFileList([]);
       form.resetFields();
       message.success("Post has been created");
-      setPosts((prevPosts) => [res, ...prevPosts]);
+      //setPosts((prevPosts) => [res, ...prevPosts]);
     } catch (error) {
       console.error("Error creating post:", error);
     }
@@ -244,7 +244,7 @@ const WorkspacePage = () => {
                     post.files.map((fileName: any, index: any) => (
                       <a
                         key={index}
-                        href={`${API_BASE_URL}/uploads/posts/${
+                        href={`${API_BASE_URL}/uploads/workSpace/posts/${
                           post.user_id
                         }/${fileName.trim()}`}
                         target="_blank"
@@ -265,10 +265,34 @@ const WorkspacePage = () => {
                             <div>
                               <strong>User ID: {comment.user_id}</strong>
                               <p>{comment.content}</p>
+                              {comment.images.map((image: any, index: any) => (
+                                <Image
+                                  key={index}
+                                  src={`${API_BASE_URL}/uploads/workSpace/posts/comment/${comment.user_id}/${image}`}
+                                  alt={`Image ${index + 1}`}
+                                />
+                              ))}
+                              {comment.files.length > 0 &&
+                                comment.files[0] !== "" &&
+                                comment.files.map(
+                                  (fileName: any, index: any) => (
+                                    <a
+                                      key={index}
+                                      href={`${API_BASE_URL}/uploads/workSpace/posts/comment/${
+                                        comment.user_id
+                                      }/${fileName.trim()}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      Download File {fileName}
+                                    </a>
+                                  )
+                                )}
                             </div>
                           </List.Item>
                         )}
                       />
+
                       {/* Comment Form */}
                       <Form
                         form={form}

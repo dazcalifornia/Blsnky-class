@@ -9,6 +9,7 @@ import {
   UserOutlined,
   CommentOutlined,
   MenuOutlined,
+  UploadOutlined,
 } from "@ant-design/icons";
 import {
   Spin,
@@ -26,10 +27,15 @@ import {
   Avatar,
   Form,
   Input,
+  message,
+  Upload,
+  Collapse,
+  Image,
 } from "antd";
 import type { DescriptionsProps } from "antd";
 const { TabPane } = Tabs;
 const { TextArea } = Input;
+const { Panel } = Collapse;
 
 import moment from "moment";
 
@@ -41,7 +47,9 @@ import UserHandler from "@/lib/handler/api/userHandler";
 import AssignmentHandler from "@/lib/handler/api/assignMentHandler";
 import AssignmentSubmissionForm from "@/lib/components/AssignmentSubmissionForm";
 import Workspace from "@/lib/components/Workspace";
-import CreateWorkspaceButton from "@/lib/components/CreateWorkspaceButton";
+import WorkspaceHandler from "@/lib/handler/api/WorkspaceHandler";
+
+const API_BASE_URL = "http://localhost:4049";
 
 const ClassroomPage = () => {
   const params = useParams();
@@ -70,6 +78,9 @@ const ClassroomPage = () => {
   const [reviewResult, setReviewResult] = useState<any>(null);
 
   const [form] = Form.useForm();
+
+  const [comments, setComments] = useState<any[]>([]);
+  const [commentFileList, setCommentFileList] = useState<any[]>([]);
 
   useEffect(() => {
     //fetch userRole
@@ -397,6 +408,91 @@ const ClassroomPage = () => {
     }
   };
 
+  const customCommentAttachmentRequest = async ({
+    file,
+    onSuccess,
+    onError,
+  }: any) => {
+    try {
+      // Append the file to the list
+      const newFile = { uid: file.uid, name: file.name, originFileObj: file };
+      setCommentFileList((prevList) => [...prevList, newFile]);
+      onSuccess();
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      onError(error);
+    }
+  };
+
+  const handleCommentAttachmentRemove = (file: any) => {
+    setCommentFileList((prevList) =>
+      prevList.filter((item) => item.uid !== file.uid)
+    );
+  };
+
+  const onFinishComment = async (feedId: string, values: any) => {
+    console.log("Dtaa:", feedId, values);
+    const formData = new FormData();
+
+    // Append form data
+    formData.append("postId", feedId.toString());
+    formData.append("content", values.content);
+
+    // Append files
+    commentFileList.forEach((file: any) => {
+      formData.append("attachmentFiles", file.originFileObj);
+    });
+
+    try {
+      // Call the createComment function with feed ID, form values, and files
+      const res = await WorkspaceHandler.createComment(formData);
+
+      console.log("Comment creation response:", res);
+
+      // After successfully creating a comment, fetch the updated list of comments
+      const updatedComments = await WorkspaceHandler.getComments(feedId);
+
+      // Update the comments state to rerender the comments section
+      setComments(updatedComments);
+
+      // Reset form fields and file list
+      setCommentFileList([]);
+      form.resetFields();
+
+      message.success("Comment has been added");
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      // Handle error appropriately, e.g., show an error message to the user
+    }
+  };
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        console.log("classFeedHEHE:", classFeed);
+        // Fetch comments for each feed in the list
+        const commentsPromises = classFeed.map(async (feed: any) => {
+          const commentsData = await WorkspaceHandler.getComments(feed?.id);
+          return commentsData;
+        });
+
+        // Wait for all promises to resolve
+        const allComments = await Promise.all(commentsPromises);
+
+        // Flatten the array of arrays into a single array
+        const flattenedComments = allComments.flat();
+
+        console.log("flattenedComments:", flattenedComments);
+        // Update the comments state
+        setComments(flattenedComments);
+      } catch (error) {
+        console.error("Error fetching comments:", error);
+      }
+    };
+
+    fetchComments();
+  }, [classFeed]);
+
   return (
     <div>
       <Breadcrumb
@@ -453,6 +549,86 @@ const ClassroomPage = () => {
                 {classFeed.map((feedItem: any, index: any) => (
                   <Col key={index} span={24}>
                     <ClassFeedCard feedItem={feedItem} />
+
+                    {/* Comment Section */}
+                    <Collapse accordion>
+                      <Panel header="Comments" key="1">
+                        <List
+                          key={index}
+                          dataSource={comments.filter(
+                            (comment) => comment.post_id === feedItem.id
+                          )}
+                          renderItem={(comment) => (
+                            <List.Item>
+                              <div>
+                                <strong>User ID: {comment.user_id}</strong>
+                                <p>{comment.content}</p>
+                                {comment.images.map(
+                                  (image: any, index: any) => (
+                                    <Image
+                                      key={index}
+                                      src={`${API_BASE_URL}/uploads/workSpace/posts/comment/${comment.user_id}/${image}`}
+                                      alt={`Image ${index + 1}`}
+                                    />
+                                  )
+                                )}
+                                {comment.files.length > 0 &&
+                                  comment.files[0] !== "" &&
+                                  comment.files.map(
+                                    (fileName: any, index: any) => (
+                                      <a
+                                        key={index}
+                                        href={`${API_BASE_URL}/uploads/workSpace/posts/comment/${
+                                          comment.user_id
+                                        }/${fileName.trim()}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        Download File {fileName}
+                                      </a>
+                                    )
+                                  )}
+                              </div>
+                            </List.Item>
+                          )}
+                        />
+                        {/* Comment Form */}
+                        <Form
+                          form={form}
+                          onFinish={(values) =>
+                            onFinishComment(feedItem?.id, values)
+                          } // You may need to adjust this based on your requirements
+                          style={{ marginTop: "16px" }}
+                        >
+                          <Form.Item name="content">
+                            <Input.TextArea rows={2} />
+                          </Form.Item>
+                          {/* Comment Attachment Upload */}
+                          <Form.Item
+                            label="Attach"
+                            name="commentAttachment"
+                            valuePropName="fileList"
+                            getValueFromEvent={(e) => e && e.fileList}
+                          >
+                            <Upload
+                              customRequest={customCommentAttachmentRequest}
+                              fileList={commentFileList}
+                              onRemove={handleCommentAttachmentRemove}
+                              listType="picture"
+                              maxCount={5}
+                              accept="image/*,audio/*,video/*,document/*"
+                            >
+                              <Button icon={<UploadOutlined />}>Attach</Button>
+                            </Upload>
+                          </Form.Item>
+                          <Form.Item>
+                            <Button type="primary" htmlType="submit">
+                              Add Comment
+                            </Button>
+                          </Form.Item>
+                        </Form>
+                      </Panel>
+                    </Collapse>
                   </Col>
                 ))}
               </Row>
