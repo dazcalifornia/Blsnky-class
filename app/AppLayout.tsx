@@ -163,6 +163,7 @@ const AppLayout = ({ children }: any) => {
     // Check if the user is a teacher or admin
     if (userRole === "teacher" || userRole === "admin") {
       return [
+        getItem(`Logged as : ${userRole}`, "", <UserOutlined />),
         getItem("Home", "/", <HomeFilled />),
         getItem("Feeds", "/feed", <EditFilled />),
         getItem("Your Class", "ownedClass", <SmileFilled />, [
@@ -172,6 +173,8 @@ const AppLayout = ({ children }: any) => {
     } else {
       // Return a reduced set of menu items for non-teacher or non-admin users
       return [
+        getItem(`Logged as : ${userRole}`, "", <UserOutlined />),
+
         getItem("Home", "/", <HomeFilled />),
         getItem("Feeds", "/feed", <EditFilled />),
         getItem("Joined Classroom", "joinedClass", <SmileFilled />, [
@@ -198,6 +201,8 @@ const AppLayout = ({ children }: any) => {
         >
           <div style={{ width: "auto" }}>
             <div className="logo" />
+
+            <p></p>
             <Menu
               theme="light"
               mode="inline"
