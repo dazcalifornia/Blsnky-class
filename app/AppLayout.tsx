@@ -55,7 +55,8 @@ const AppLayout = ({ children }: any) => {
 
   const router = useRouter();
   const pathname = usePathname();
-  const token = localStorage.getItem("token");
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
