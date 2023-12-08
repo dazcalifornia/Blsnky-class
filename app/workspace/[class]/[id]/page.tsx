@@ -32,8 +32,8 @@ const { TextArea } = Input;
 const { Title, Text } = Typography;
 const { Panel } = Collapse;
 
-const API_BASE_URL = "http://localhost:4049";
-//const API_BASE_URL = "http://server.franx.dev";
+//const API_BASE_URL = "http://localhost:4049";
+const API_BASE_URL = "http://server.franx.dev";
 
 const WorkspacePage = () => {
   const params = useParams();

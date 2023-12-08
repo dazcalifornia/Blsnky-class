@@ -2,8 +2,8 @@
 
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:4049";
-//const API_BASE_URL = "http://server.franx.dev"; // Replace with your backend API URL
+//const API_BASE_URL = "http://localhost:4049";
+const API_BASE_URL = "http://server.franx.dev"; // Replace with your backend API URL
 
 const UserHandler = {
   getAdminRoute: async () => {
@@ -14,7 +14,7 @@ const UserHandler = {
         },
       });
       return response.data;
-    } catch (error) {
+    } catch (error:any) {
       throw error.response.data;
     }
   },
@@ -31,7 +31,7 @@ const UserHandler = {
         }
       );
       return response.data;
-    } catch (error) {
+    } catch (error:any) {
       throw error.response.data;
     }
   },
@@ -44,7 +44,7 @@ const UserHandler = {
         },
       });
       return response.data;
-    } catch (error) {
+    } catch (error:any) {
       throw error.response.data;
     }
   },
@@ -57,7 +57,7 @@ const UserHandler = {
         },
       });
       return response.data;
-    } catch (error) {
+    } catch (error:any) {
       throw error.response.data;
     }
   },

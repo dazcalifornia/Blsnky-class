@@ -1,11 +1,11 @@
 // lib/handler/api/classHandler.ts
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:4049";
-//const API_BASE_URL = "http://server.franx.dev"; // Replace with your backend API URL
+//const API_BASE_URL = "http://localhost:4049";
+const API_BASE_URL = "http://server.franx.dev"; // Replace with your backend API URL
 
 const ClassHandler = {
-  createClassroom: async (name: string) => {
+  createClassroom: async (name: any) => {
     try {
       const className = name.name;
       const response = await axios.post(
@@ -20,7 +20,7 @@ const ClassHandler = {
         }
       );
       return response.data;
-    } catch (error) {
+    } catch (error:any) {
       throw error.response.data;
     }
   },
@@ -41,7 +41,7 @@ const ClassHandler = {
         }
       );
       return response.data;
-    } catch (error) {
+    } catch (error:any) {
       throw error.response.data;
     }
   },
@@ -54,7 +54,7 @@ const ClassHandler = {
         },
       });
       return response.data.joinedClass;
-    } catch (error) {
+    } catch (error:any) {
       throw error.response.data;
     }
   },
@@ -70,7 +70,7 @@ const ClassHandler = {
         }
       );
       return response.data.classroom;
-    } catch (error) {
+    } catch (error:any) {
       throw error.response.data;
     }
   },
@@ -83,7 +83,7 @@ const ClassHandler = {
       });
       console.log("ownClass: ", response);
       return response.data;
-    } catch (error) {
+    } catch (error:any) {
       throw error.response.data;
     }
   },

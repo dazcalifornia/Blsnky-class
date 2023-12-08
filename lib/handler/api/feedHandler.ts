@@ -1,8 +1,8 @@
 //feedHandler.ts
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:4049";
-//const API_BASE_URL = "http://server.franx.dev"; // Replace with your backend API URL
+//const API_BASE_URL = "http://localhost:4049";
+const API_BASE_URL = "http://server.franx.dev"; // Replace with your backend API URL
 
 const feedHandler = {
   getGlobalFeed: async () => {
@@ -45,7 +45,7 @@ const feedHandler = {
         }
       );
       return response.data;
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error creating classroom feed:", error);
       throw error.response.data;
     }
@@ -63,7 +63,7 @@ const feedHandler = {
         }
       );
       return response.data.results;
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error fetching classroom feeds:", error);
       throw error.response.data;
     }
@@ -80,7 +80,7 @@ const feedHandler = {
         }
       );
       return response.data.results;
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error fetching feed posts:", error);
       throw error.response.data;
     }
@@ -105,7 +105,7 @@ const feedHandler = {
         }
       );
       return response.data;
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error creating feed post:", error);
       throw error.response.data;
     }

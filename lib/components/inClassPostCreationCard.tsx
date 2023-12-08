@@ -14,9 +14,12 @@ const InClassPostCreationCard: React.FC<InClassPostCreationCardProps> = ({
   const [content, setContent] = useState<string>("");
 
   const onFinish = async () => {
-    console.log("postData:", content); // Log the postData object
+    const formData = new FormData();
+    formData.append("content", content);
 
-    onCreatePost(content);
+    console.log("postData:", formData); // Log the postData object
+
+    onCreatePost(formData);
 
     setContent(""); // Clear the content state
     onCancel(); // Close the modal after creating a post

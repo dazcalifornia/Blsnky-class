@@ -5,6 +5,7 @@ import AssignmentHandler from "@/lib/handler/api/assignMentHandler";
 import AssignmentSubmissionForm from "@/lib/components/AssignmentSubmissionForm";
 
 import { List ,Avatar} from "antd";
+import moment from "moment";
 
 const AssignmentReviews = ({classroom, selectedAssignment}:any) => {
 
@@ -23,6 +24,10 @@ const AssignmentReviews = ({classroom, selectedAssignment}:any) => {
 
     fetchSubmitted();
   }, [classroom?.id, selectedAssignment?.id]);
+  function showAssignmentDetails(submittedList: any): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <List
     dataSource={submittedList}
