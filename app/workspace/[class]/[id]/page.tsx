@@ -15,7 +15,6 @@ import {
   Typography,
   Space,
   Image,
-  Comment,
   List,
 } from "antd";
 import {
