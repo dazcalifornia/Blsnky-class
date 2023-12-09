@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-
 //import class
 import {
   MenuFoldOutlined,
@@ -96,6 +95,7 @@ const AppLayout = ({ children }: any) => {
     try {
       const response = await UserHandler.getUserRole();
       setUserRole(response.role || ""); // Provide a default empty string
+
       console.log("userRole:", response.role);
     } catch (error) {
       console.error("Error fetching user role:", error);
@@ -161,8 +161,14 @@ const AppLayout = ({ children }: any) => {
       "group"
     );
 
+    if (userRole === "admin") {
+      return [
+        getItem(`Home Logged as : ${userRole}`, "", <HomeFilled />),
+        getItem("ADMIN", "/admin", <SmileFilled />),
+      ];
+    }
     // Check if the user is a teacher or admin
-    if (userRole === "teacher" || userRole === "admin") {
+    if (userRole === "teacher") {
       return [
         getItem(`Logged as : ${userRole}`, "", <UserOutlined />),
         getItem("Home", "/", <HomeFilled />),
@@ -283,7 +289,7 @@ const AppLayout = ({ children }: any) => {
             {children}
           </Content>
           <Footer style={{ textAlign: "center" }}>
-            Essential-Studio ©2023 Created by ESFRANX
+            HI:D
           </Footer>
         </Layout>
       </Layout>

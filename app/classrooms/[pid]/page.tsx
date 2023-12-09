@@ -83,6 +83,9 @@ const ClassroomPage = () => {
   const [comments, setComments] = useState<any[]>([]);
   const [commentFileList, setCommentFileList] = useState<any[]>([]);
 
+  const [reportFormVisible, setReportFormVisible] = useState(false);
+  const [toDoListCount, setToDoListCount] = useState(0);
+
   useEffect(() => {
     //fetch userRole
     const getRole = async () => {
@@ -132,6 +135,7 @@ const ClassroomPage = () => {
           }));
 
         setToDoListItems(toDoList);
+        
       } catch (error) {
         console.error("Error fetching assignments:", error);
       }
@@ -191,6 +195,8 @@ const ClassroomPage = () => {
   const handleTabChange = (key: string) => {
     setActiveTab(key);
   };
+
+  
 
   const isTeacher = userRole === "teacher";
 
@@ -494,6 +500,59 @@ const ClassroomPage = () => {
     fetchComments();
   }, [classFeed]);
 
+  const showReportForm = (submitted: any) => {
+    console.log(submitted)
+    setSelectedAssignment(submitted);
+    setReportFormVisible(true);
+  };
+
+  const closeReportForm = () => {
+    setReportFormVisible(false);
+  };
+
+  const submitReport = async (values: any) => {
+    console.log(values,classroom.id,
+      selectedAssignment.id,
+      values.submissionId,
+      values.reportReason)
+    try {
+      // Call the reportPlagiarism function with necessary parameters
+      await AssignmentHandler.reportPlagiarism(
+        classroom.id,
+        selectedAssignment.assignment_id,
+        selectedAssignment.id,
+        values.reportReason
+      );
+
+      message.success("Report submitted successfully");
+      closeReportForm();
+    } catch (error) {
+      console.error("Error submitting report:", error);
+      // Handle error appropriately, e.g., show an error message to the user
+    }
+  };
+
+
+
+  const isDueSoon = (dueDate:any) => {
+    const currentDateTime = moment();
+    const assignmentDueDate = moment(dueDate);
+  
+    // You can adjust the threshold for "near" based on your requirements
+    const daysDifference = assignmentDueDate.diff(currentDateTime, 'days');
+  
+    return daysDifference >= 0 && daysDifference <= 3;
+  };
+  
+  useEffect(() => {
+    // Update toDoListCount based on your to-do list items
+    const count = toDoListItems.filter((item) =>
+      isDueSoon(item.dueDate)  // Assuming toDoListItems have a dueDate property
+    ).length;
+  
+    setToDoListCount(count);
+  }, [toDoListItems]); // Update the count whenever toDoListItems change
+  
   return (
     <div>
       <Breadcrumb
@@ -617,7 +676,7 @@ const ClassroomPage = () => {
                               onRemove={handleCommentAttachmentRemove}
                               listType="picture"
                               maxCount={5}
-                              accept="image/*,audio/*,video/*,document/*"
+                              multiple
                             >
                               <Button icon={<UploadOutlined />}>Attach</Button>
                             </Upload>
@@ -700,10 +759,20 @@ const ClassroomPage = () => {
                           avatar={
                             <Avatar src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" />
                           }
-                          title={<>{submission.user_id}</>}
-                          description={`Due Date: ${moment(
+                          title={
+                            <>
+                            
+                              {submission.user_id}
+                            </>
+                          }
+                          description={<>
+                          {`Submit Date: ${moment(
                             submission.submission_time
                           ).format("MMMM Do YYYY, h:mm:ss a")}`}
+                          <p>Assignment ID {submission.id}</p>
+                          </>
+                            
+                          }
                         />
                       </List.Item>
                     )}
@@ -720,7 +789,7 @@ const ClassroomPage = () => {
                         key={submission.id}
                         actions={[
                           <a
-                            onClick={() => showAssignmentDetails(submission)}
+                            onClick={() => showReportForm(submission)}
                             key={`a-${submission.id}`}
                           >
                             View Details
@@ -742,22 +811,37 @@ const ClassroomPage = () => {
                 </TabPane>
               </>
             ) : (
-              <TabPane tab="To-do List" key="3">
-                <Divider orientation="left">To do</Divider>
-                {/* Assignments if not submmit */}
-
-                <List
-                  dataSource={toDoListItems}
-                  renderItem={(item) => (
-                    <List.Item>
-                      <List.Item.Meta
-                        title={item.title}
-                        description={item.description}
-                      />
-                    </List.Item>
-                  )}
-                />
-              </TabPane>
+<TabPane
+  tab={
+    <span>
+      To-do List
+      {toDoListCount > 0 && (
+        <Badge
+          count={toDoListCount}
+          style={{
+            backgroundColor: '#f50',
+            marginLeft: 8,
+          }}
+        />
+      )}
+    </span>
+  }
+  key="3"
+>
+  <Divider orientation="left">To do</Divider>
+  {/* Assignments if not submit */}
+  <List
+    dataSource={toDoListItems}
+    renderItem={(item) => (
+      <List.Item>
+        <List.Item.Meta
+          title={item.title}
+          description={item.description}
+        />
+      </List.Item>
+    )}
+  />
+</TabPane>
             )}
             <TabPane tab="workspace" key="5">
               <Divider orientation="left">Workspace</Divider>
@@ -775,14 +859,42 @@ const ClassroomPage = () => {
               visible={assignmentDrawerVisible}
               width={400} // Adjust the width as needed
             >
-              <div style={{ marginBottom: "1rem", textAlign: "center" }}>
+              <div>
+                {assignments
+                  .filter((a) => a.id === selectedAssignment?.assignment_id)
+                  .map((assignment, index) => (
+                    <div key={index}>
+                      <p>Title: {assignment.title}</p>
+                      <p>Max Score: {assignment.title}</p>
+                      {/* Render other details of the submission as needed */}
+                    </div>
+                  ))}
+
                 <h2>{selectedAssignment?.name}</h2>
                 <p>
-                  Due date:{" "}
-                  {moment(selectedAssignment?.dueDate).format(
+                  Submit time:{" "}
+                  {moment(selectedAssignment?.submission_time).format(
                     "MMMM Do YYYY, h:mm:ss a"
                   )}
                 </p>
+                {selectedAssignment?.file_paths.length > 0 &&
+                  selectedAssignment?.file_paths[0] !== "" &&
+                  selectedAssignment?.file_paths.map(
+                    (fileName: any, index: any) => (
+                      <a
+                        key={index}
+                        href={`${API_BASE_URL}/uploads/assignments/${
+                          selectedAssignment.user_id
+                        }/${
+                          selectedAssignment.assignment_id
+                        }/${fileName.trim()}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Download File : {fileName}
+                      </a>
+                    )
+                  )}
               </div>
               {selectedAssignment && (
                 <>
@@ -819,6 +931,7 @@ const ClassroomPage = () => {
               visible={assignmentDrawerVisible}
               width={400} // Adjust the width as needed
             >
+
               {selectedAssignment && (
                 <>
                   <p>Title: {selectedAssignment.title}</p>
@@ -881,16 +994,32 @@ const ClassroomPage = () => {
           {isTeacher && (
             // Teacher view
             <Drawer
-              title="Assignment Review"
+              title="Report Plagiarism"
               placement="right"
               closable={true}
-              onClose={closeAssignmentDetails}
-              visible={assignmentDetailsVisible}
-              width={400} // Adjust the width as needed
+              onClose={closeReportForm}
+              visible={reportFormVisible}
+              width={400}
             >
-              {selectedAssignment && (
-                <>{/* Add more assignment review details as needed */}</>
-              )}
+              <Form form={form} onFinish={submitReport}>
+                <Form.Item
+                  label="Report Reason"
+                  name="reportReason"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter the report reason",
+                    },
+                  ]}
+                >
+                  <Input.TextArea />
+                </Form.Item>
+                <Form.Item>
+                  <Button type="primary" htmlType="submit">
+                    Submit Report
+                  </Button>
+                </Form.Item>
+              </Form>
             </Drawer>
           )}
         </div>

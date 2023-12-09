@@ -1,6 +1,15 @@
 "use client";
 import React, { useState } from "react";
-import { FloatButton, Modal, Form, Input, message, Button } from "antd";
+import {
+  FloatButton,
+  Modal,
+  Form,
+  Input,
+  message,
+  Button,
+  Card,
+  Divider,
+} from "antd";
 import { PlusOutlined, LoginOutlined } from "@ant-design/icons";
 import ClassHandler from "@/lib/handler/api/classHandler"; // Import the class handler
 
@@ -53,8 +62,12 @@ const Home = () => {
   return (
     <>
       <div>
-        <h1>This is a homepage</h1>
-        <p>Hello</p>
+        <Card style={{ width: 300, marginTop: 16 }}>
+          <p>Email Teacher : burblanks@gmail.com</p>
+          <p>password : 123456</p>
+          <Divider />
+         
+        </Card>
         <FloatButton.Group
           trigger="click"
           type="primary"

@@ -61,6 +61,22 @@ const UserHandler = {
       throw error.response.data;
     }
   },
+
+  getUserInfo: async (userId:any) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/userInfo/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error:any) {
+      throw error.response.data;
+    }
+  },
 };
 
 export default UserHandler;
