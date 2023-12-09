@@ -15,8 +15,8 @@ interface FeedCardProps {
     images: string[];
   };
 }
-//const API_BASE_URL = "http://localhost:4049";
-const API_BASE_URL = "https://server.franx.dev";
+const API_BASE_URL = "http://localhost:4049";
+//const API_BASE_URL = "https://server.franx.dev";
 
 const FeedCard: React.FC<FeedCardProps> = ({ feedItem }) => {
   return (

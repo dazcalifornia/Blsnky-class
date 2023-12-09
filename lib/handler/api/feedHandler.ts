@@ -1,8 +1,8 @@
 //feedHandler.ts
 import axios from "axios";
 
-//const API_BASE_URL = "http://localhost:4049";
-const API_BASE_URL = "https://server.franx.dev"; // Replace with your backend API URL
+const API_BASE_URL = "http://localhost:4049";
+//const API_BASE_URL = "https://server.franx.dev"; // Replace with your backend API URL
 
 const feedHandler = {
   getGlobalFeed: async () => {

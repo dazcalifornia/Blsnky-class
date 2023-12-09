@@ -49,8 +49,8 @@ import AssignmentSubmissionForm from "@/lib/components/AssignmentSubmissionForm"
 import Workspace from "@/lib/components/Workspace";
 import WorkspaceHandler from "@/lib/handler/api/WorkspaceHandler";
 
-//const API_BASE_URL = "http://localhost:4049";
-const API_BASE_URL = "https://server.franx.dev";
+const API_BASE_URL = "http://localhost:4049";
+//const API_BASE_URL = "https://server.franx.dev";
 
 const ClassroomPage = () => {
   const params = useParams();

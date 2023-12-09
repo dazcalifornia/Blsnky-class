@@ -34,7 +34,6 @@ export default function RootLayout({
           http-equiv="Content-Security-Policy"
           content="upgrade-insecure-requests"
         />
-        <meta http-equiv="Access-Control-Allow-Origin" content="*" />
       </head>
       <body className={kanit.className}>
         <StyledComponentsRegistry>
